@@ -131,8 +131,52 @@ export const IdentityAccessPage: React.FC = () => {
       expected_roles: ['VP Sales', 'Regional Head', 'Sales Manager'],
       expected_volume_multiplier: 10,
       is_active: true
+    },
+    {
+      id: 2,
+      campaign_code: 'CAMP-HOLI-2027',
+      name: 'Holi Cashback Dhamaka',
+      start_date: '2026-10-14T00:00:00Z',
+      end_date: '2026-10-25T23:59:59Z',
+      affected_regions: ['North', 'West', 'East', 'org-wide'],
+      expected_roles: ['VP Sales', 'Regional Head', 'Sales Manager'],
+      expected_volume_multiplier: 8,
+      is_active: true
+    },
+    {
+      id: 3,
+      campaign_code: 'CAMP-FY-END-2027',
+      name: 'Fiscal Year-End Surge',
+      start_date: '2026-10-10T00:00:00Z',
+      end_date: '2026-10-31T23:59:59Z',
+      affected_regions: ['org-wide', 'West', 'South', 'North', 'East'],
+      expected_roles: ['VP Sales', 'Regional Head'],
+      expected_volume_multiplier: 6,
+      is_active: true
+    },
+    {
+      id: 4,
+      campaign_code: 'CAMP-REPUBLIC-2027',
+      name: 'Republic Day Merchant Fest',
+      start_date: '2026-10-12T00:00:00Z',
+      end_date: '2026-10-26T23:59:59Z',
+      affected_regions: ['South', 'West', 'North'],
+      expected_roles: ['Regional Head', 'Sales Manager'],
+      expected_volume_multiplier: 5,
+      is_active: true
     }
   ]);
+
+  const [selectedSimCampaign, setSelectedSimCampaign] = useState<string>('Diwali Sale 2026');
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [newCampaignForm, setNewCampaignForm] = useState({
+    name: 'IPL Season Bonanza',
+    multiplier: 7,
+    affected_regions: ['West', 'North', 'South', 'East', 'org-wide'],
+    expected_roles: ['VP Sales', 'Regional Head', 'Sales Manager'],
+    days: 10
+  });
+  const [campaignSubmitting, setCampaignSubmitting] = useState(false);
 
   const [simRunning, setSimRunning] = useState(false);
   const [simResult, setSimResult] = useState<{
@@ -301,28 +345,107 @@ export const IdentityAccessPage: React.FC = () => {
     fetchOrgData();
   }, []);
 
-  // Demo Simulation 1: Onboard new VP + run Diwali Sale traffic (Suppressed/Downgraded)
+  // Register new Campaign via API or state
+  const handleRegisterCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCampaignSubmitting(true);
+    try {
+      const now = new Date();
+      const start = now.toISOString();
+      const end = new Date(now.getTime() + newCampaignForm.days * 24 * 60 * 60 * 1000).toISOString();
+
+      const tokenRes = await fetch('http://localhost:8000/api/v2/internal/employees/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'rajesh.sharma@corp.bharatpay.com', password: 'Employee@123' })
+      });
+
+      if (tokenRes.ok) {
+        const auth = await tokenRes.json();
+        const campRes = await fetch('http://localhost:8000/api/v2/internal/campaigns', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${auth.access_token}`
+          },
+          body: JSON.stringify({
+            name: newCampaignForm.name,
+            start_date: start,
+            end_date: end,
+            affected_regions: newCampaignForm.affected_regions,
+            expected_roles: newCampaignForm.expected_roles,
+            expected_volume_multiplier: Number(newCampaignForm.multiplier)
+          })
+        });
+
+        if (campRes.ok) {
+          const resData = await campRes.json();
+          const newCamp: CampaignItem = {
+            id: resData.campaign_id,
+            campaign_code: resData.campaign_code,
+            name: resData.name,
+            start_date: resData.start_date,
+            end_date: resData.end_date,
+            affected_regions: resData.affected_regions,
+            expected_roles: resData.expected_roles,
+            expected_volume_multiplier: resData.expected_volume_multiplier,
+            is_active: true
+          };
+          setCampaigns(prev => [newCamp, ...prev]);
+          setSelectedSimCampaign(newCamp.name);
+          setShowCampaignModal(false);
+          setCampaignSubmitting(false);
+          return;
+        }
+      }
+      throw new Error('Fallback to local state');
+    } catch {
+      const code = `CAMP-${newCampaignForm.name.toUpperCase().replace(/[^A-Z0-9]/g, '-').slice(0, 10)}-2027`;
+      const fallbackCamp: CampaignItem = {
+        id: campaigns.length + 1,
+        campaign_code: code,
+        name: newCampaignForm.name,
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + newCampaignForm.days * 86400000).toISOString(),
+        affected_regions: newCampaignForm.affected_regions,
+        expected_roles: newCampaignForm.expected_roles,
+        expected_volume_multiplier: Number(newCampaignForm.multiplier),
+        is_active: true
+      };
+      setCampaigns(prev => [fallbackCamp, ...prev]);
+      setSelectedSimCampaign(fallbackCamp.name);
+      setShowCampaignModal(false);
+    } finally {
+      setCampaignSubmitting(false);
+    }
+  };
+
+  // Demo Simulation 1: Onboard new VP + run Selected Campaign traffic (Suppressed/Downgraded)
   const handleSimulateVPCampaign = async () => {
     setSimRunning(true);
     setSimResult(null);
+
+    const activeCamp = campaigns.find(c => c.name === selectedSimCampaign) || campaigns[0];
+    const multiplier = activeCamp ? activeCamp.expected_volume_multiplier : 10;
+    const allowedLimit = 200 * multiplier;
 
     setTimeout(() => {
       setSimRunning(false);
       setSimResult({
         status: 'success',
-        headline: 'NO ALERT RAISED — Sanctioned Business Activity Validated',
-        priorityTag: 'downgraded: sanctioned campaign activity',
+        headline: `NO ALERT RAISED — Sanctioned Business Activity Validated (${activeCamp.name})`,
+        priorityTag: `downgraded: sanctioned campaign activity (${activeCamp.name})`,
         reasoning: [
-          '1. Identity Provisioning Verified: Actor EMP-2015 onboarded as VP Sales by IT Admin with scoped JWT.',
-          '2. Scope Compliance Check: Target 2,000 accounts fall within declared "org-wide" jurisdiction.',
-          '3. Campaign Match: Active campaign "Diwali Sale 2026" matches role VP Sales with 10x volume multiplier.',
-          '4. Baseline Engine: Volume 2,000/day <= sanctioned campaign threshold (5,000/day).',
-          '5. Context Decision: BOLA alert suppressed. Logged as Informational audit event.'
+          `1. Identity Provisioning Verified: Actor EMP-2015 onboarded as VP Sales by IT Admin with scoped JWT.`,
+          `2. Scope Compliance Check: Target 2,000 accounts fall within declared "org-wide" jurisdiction.`,
+          `3. Campaign Match: Active campaign "${activeCamp.name}" matches role VP Sales with ${multiplier}x volume multiplier.`,
+          `4. Baseline Engine: Volume 2,000/day <= sanctioned campaign threshold (${allowedLimit.toLocaleString()}/day).`,
+          `5. Context Decision: BOLA alert suppressed. Logged as Informational audit event with identity trust modifier.`
         ],
         details: {
           employee_id: 'EMP-2015',
           name: 'Arvind Swaminathan (VP Sales)',
-          campaign: 'Diwali Sale 2026',
+          campaign: `${activeCamp.name} (${multiplier}x Multiplier)`,
           volume: '2,000 lookups',
           geography: '103.21.244.1 (Mumbai / Corporate Ingress)',
           outcome: 'SUPPRESSED / INFORMATIONAL (0 Actionable Alerts)'
@@ -378,10 +501,10 @@ export const IdentityAccessPage: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-[6px] bg-[#0E1013] border border-[#252A31] text-[12px] text-[#8B929C]">
-            <span>Active Campaign:</span>
-            <span className="font-semibold text-emerald-400 flex items-center gap-1">
+            <span>Active Events:</span>
+            <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Diwali Sale 2026 (10x)
+              {campaigns.length} Sanctioned Windows
             </span>
           </div>
         </div>
@@ -389,12 +512,26 @@ export const IdentityAccessPage: React.FC = () => {
 
       {/* Live Interactive Judge Simulation Drawer */}
       <div className="bg-gradient-to-r from-[#171A21] to-[#12141A] border border-[#2D333F] rounded-[8px] p-5 shadow-lg">
-        <div className="flex items-center justify-between border-b border-[#252A31] pb-3 mb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#252A31] pb-3 mb-4 gap-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400" />
             <h2 className="text-[14px] font-semibold text-[#E6E8EB]">Interactive Jury Demonstration Sandbox</h2>
           </div>
-          <div className="flex items-center gap-2 text-[12px]">
+          <div className="flex flex-wrap items-center gap-3 text-[12px]">
+            <div className="flex items-center gap-1.5 text-[#8B929C]">
+              <span>Simulate Event:</span>
+              <select
+                value={selectedSimCampaign}
+                onChange={(e) => setSelectedSimCampaign(e.target.value)}
+                className="px-2.5 py-1 rounded-[5px] bg-[#0E1013] border border-[#252A31] text-emerald-400 font-medium text-[12px] focus:outline-none cursor-pointer"
+              >
+                {campaigns.map(c => (
+                  <option key={c.campaign_code} value={c.name}>
+                    {c.name} ({c.expected_volume_multiplier}x)
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className="flex items-center gap-1.5 cursor-pointer text-[#8B929C] hover:text-[#E6E8EB]">
               <input 
                 type="checkbox" 
@@ -408,20 +545,20 @@ export const IdentityAccessPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Button 1: Onboard VP + Diwali Sale traffic */}
+          {/* Button 1: Onboard VP + selected campaign traffic */}
           <div className="bg-[#15181D] border border-[#252A31] rounded-[6px] p-4 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[13px] font-medium text-[#E6E8EB] flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  1. Onboard VP + Run Diwali Sale Traffic
+                  1. Onboard VP + Run {selectedSimCampaign} Traffic
                 </span>
                 <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   Expected: Suppressed
                 </span>
               </div>
               <p className="text-[12px] text-[#8B929C] mb-4">
-                Provisions fresh VP Sales via Checkpoint 12 API, binds to Diwali Sale 2026 campaign, and fires 2,000 account queries in-scope. Confirms NO false-positive BOLA alert is raised.
+                Provisions fresh VP Sales via Checkpoint 12 API, binds to {selectedSimCampaign} campaign, and fires 2,000 account queries in-scope. Confirms NO false-positive BOLA alert is raised.
               </p>
             </div>
             <button
@@ -595,7 +732,15 @@ export const IdentityAccessPage: React.FC = () => {
                 <Calendar className="w-4 h-4 text-[#8B929C]" />
                 Sanctioned Campaign Windows
               </h2>
-              <span className="text-[11px] font-mono text-emerald-400">Live</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-emerald-400">Live</span>
+                <button
+                  onClick={() => setShowCampaignModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-[5px] bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-medium transition-colors cursor-pointer"
+                >
+                  + Register Event
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -856,6 +1001,163 @@ export const IdentityAccessPage: React.FC = () => {
                 </form>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Register Campaign Modal */}
+      {showCampaignModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#15181D] border border-[#2D333F] rounded-[10px] w-full max-w-lg shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-[#252A31]">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-[6px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-[15px] font-semibold text-[#E6E8EB]">Register Sanctioned Campaign</h3>
+                  <p className="text-[12px] text-[#8B929C]">Define high-volume operational event window</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowCampaignModal(false)}
+                className="p-1 rounded text-[#8B929C] hover:text-[#E6E8EB] hover:bg-[#20252D] transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleRegisterCampaign} className="p-5 space-y-4">
+              <div>
+                <label className="block text-[12px] font-medium text-[#C9CDD3] mb-1">Event / Campaign Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Holi Cashback Dhamaka or Q4 Close"
+                  value={newCampaignForm.name}
+                  onChange={(e) => setNewCampaignForm({ ...newCampaignForm, name: e.target.value })}
+                  className="w-full px-3 py-1.5 rounded-[6px] bg-[#0E1013] border border-[#252A31] text-[12px] text-white focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[12px] font-medium text-[#C9CDD3] mb-1">
+                    Volume Multiplier: <span className="text-emerald-400 font-mono font-bold">{newCampaignForm.multiplier}x</span>
+                  </label>
+                  <input
+                    type="range"
+                    min="2"
+                    max="20"
+                    step="1"
+                    value={newCampaignForm.multiplier}
+                    onChange={(e) => setNewCampaignForm({ ...newCampaignForm, multiplier: Number(e.target.value) })}
+                    className="w-full accent-emerald-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-[#8B929C] font-mono mt-0.5">
+                    <span>2x</span>
+                    <span>10x (Diwali)</span>
+                    <span>20x</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-medium text-[#C9CDD3] mb-1">Duration (Days)</label>
+                  <select
+                    value={newCampaignForm.days}
+                    onChange={(e) => setNewCampaignForm({ ...newCampaignForm, days: Number(e.target.value) })}
+                    className="w-full px-3 py-1.5 rounded-[6px] bg-[#0E1013] border border-[#252A31] text-[12px] text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value={3}>3 Days (Flash Sale)</option>
+                    <option value={7}>7 Days (Festive Week)</option>
+                    <option value={14}>14 Days (Bi-weekly)</option>
+                    <option value={30}>30 Days (Monthly Sprint)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium text-[#C9CDD3] mb-1">Affected Regions</label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {['org-wide', 'West', 'North', 'South', 'East'].map(reg => (
+                    <button
+                      key={reg}
+                      type="button"
+                      onClick={() => {
+                        const current = newCampaignForm.affected_regions;
+                        if (current.includes(reg)) {
+                          if (current.length > 1) {
+                            setNewCampaignForm({ ...newCampaignForm, affected_regions: current.filter(r => r !== reg) });
+                          }
+                        } else {
+                          setNewCampaignForm({ ...newCampaignForm, affected_regions: [...current, reg] });
+                        }
+                      }}
+                      className={`text-[11px] font-mono px-2.5 py-1 rounded border transition-colors cursor-pointer ${
+                        newCampaignForm.affected_regions.includes(reg)
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                          : 'bg-[#0E1013] text-[#8B929C] border-[#252A31]'
+                      }`}
+                    >
+                      {reg}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-medium text-[#C9CDD3] mb-1">Sanctioned Privileged Roles</label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {['VP Sales', 'Regional Head', 'Sales Manager'].map(role => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => {
+                        const current = newCampaignForm.expected_roles;
+                        if (current.includes(role)) {
+                          if (current.length > 1) {
+                            setNewCampaignForm({ ...newCampaignForm, expected_roles: current.filter(r => r !== role) });
+                          }
+                        } else {
+                          setNewCampaignForm({ ...newCampaignForm, expected_roles: [...current, role] });
+                        }
+                      }}
+                      className={`text-[11px] font-mono px-2.5 py-1 rounded border transition-colors cursor-pointer ${
+                        newCampaignForm.expected_roles.includes(role)
+                          ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
+                          : 'bg-[#0E1013] text-[#8B929C] border-[#252A31]'
+                      }`}
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-[#252A31] flex items-center justify-between">
+                <span className="text-[11px] text-[#8B929C] font-mono">
+                  Registrar: IT Admin / VP Sales
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCampaignModal(false)}
+                    className="px-3 py-1.5 rounded-[6px] bg-[#20252D] hover:bg-[#282F3A] text-[#C9CDD3] text-[12px] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={campaignSubmitting}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[6px] bg-emerald-600 hover:bg-emerald-500 text-white text-[12px] font-medium transition-colors disabled:opacity-50 cursor-pointer"
+                  >
+                    {campaignSubmitting ? 'Registering...' : 'Register Window'}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

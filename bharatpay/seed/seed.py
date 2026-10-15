@@ -304,22 +304,73 @@ def seed_organization(db):
 
     db.commit()
 
-    # Seed baseline active campaign: Diwali Sale 2026
-    campaign = db.query(Campaign).filter(Campaign.campaign_code == "CAMP-DIWALI-2026").first()
-    if not campaign:
-        campaign = Campaign(
-            campaign_code="CAMP-DIWALI-2026",
-            name="Diwali Sale 2026",
-            start_date=now - timedelta(days=2),
-            end_date=now + timedelta(days=5),
-            affected_regions_json=json.dumps(["West", "North", "South", "East", "org-wide"]),
-            expected_roles_json=json.dumps(["VP Sales", "Regional Head", "Sales Manager"]),
-            expected_volume_multiplier=10,
-            created_by="EMP-1001"
-        )
-        db.add(campaign)
-        db.commit()
-    print("[BharatPay Seed] Organization & campaign seeding complete!")
+    # Seed baseline active campaigns
+    campaign_data = [
+        {
+            "campaign_code": "CAMP-DIWALI-2026",
+            "name": "Diwali Sale 2026",
+            "start_date": now - timedelta(days=2),
+            "end_date": now + timedelta(days=7),
+            "affected_regions": ["West", "North", "South", "East", "org-wide"],
+            "expected_roles": ["VP Sales", "Regional Head", "Sales Manager"],
+            "expected_volume_multiplier": 10,
+            "created_by": "EMP-1001"
+        },
+        {
+            "campaign_code": "CAMP-HOLI-2027",
+            "name": "Holi Cashback Dhamaka",
+            "start_date": now - timedelta(days=1),
+            "end_date": now + timedelta(days=6),
+            "affected_regions": ["North", "West", "East", "org-wide"],
+            "expected_roles": ["VP Sales", "Regional Head", "Sales Manager"],
+            "expected_volume_multiplier": 8,
+            "created_by": "EMP-1001"
+        },
+        {
+            "campaign_code": "CAMP-FY-END-2027",
+            "name": "Fiscal Year-End Surge",
+            "start_date": now - timedelta(days=3),
+            "end_date": now + timedelta(days=12),
+            "affected_regions": ["org-wide", "West", "South", "North", "East"],
+            "expected_roles": ["VP Sales", "Regional Head"],
+            "expected_volume_multiplier": 6,
+            "created_by": "EMP-1002"
+        },
+        {
+            "campaign_code": "CAMP-REPUBLIC-2027",
+            "name": "Republic Day Merchant Fest",
+            "start_date": now - timedelta(days=1),
+            "end_date": now + timedelta(days=5),
+            "affected_regions": ["South", "West", "North"],
+            "expected_roles": ["Regional Head", "Sales Manager"],
+            "expected_volume_multiplier": 5,
+            "created_by": "EMP-1001"
+        }
+    ]
+
+    for cdata in campaign_data:
+        campaign = db.query(Campaign).filter(Campaign.campaign_code == cdata["campaign_code"]).first()
+        if not campaign:
+            campaign = Campaign(
+                campaign_code=cdata["campaign_code"],
+                name=cdata["name"],
+                start_date=cdata["start_date"],
+                end_date=cdata["end_date"],
+                affected_regions_json=json.dumps(cdata["affected_regions"]),
+                expected_roles_json=json.dumps(cdata["expected_roles"]),
+                expected_volume_multiplier=cdata["expected_volume_multiplier"],
+                created_by=cdata["created_by"]
+            )
+            db.add(campaign)
+        else:
+            campaign.name = cdata["name"]
+            campaign.start_date = cdata["start_date"]
+            campaign.end_date = cdata["end_date"]
+            campaign.affected_regions_json = json.dumps(cdata["affected_regions"])
+            campaign.expected_roles_json = json.dumps(cdata["expected_roles"])
+            campaign.expected_volume_multiplier = cdata["expected_volume_multiplier"]
+    db.commit()
+    print("[BharatPay Seed] Organization & all campaign windows seeded successfully!")
 
 
 def seed_database():

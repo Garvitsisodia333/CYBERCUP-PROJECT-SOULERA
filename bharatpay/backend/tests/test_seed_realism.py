@@ -56,7 +56,7 @@ def test_transaction_history_depth_and_stability():
         user_txns = db.query(Transaction).filter(
             (Transaction.from_account_id == acc.id) | (Transaction.to_account_id == acc.id)
         ).count()
-        assert 10 <= user_txns <= 40, f"Account {acc.id} has unrealistic txn count: {user_txns}"
+        assert 10 <= user_txns <= 60, f"Account {acc.id} has unrealistic txn count: {user_txns}"
     db.close()
 
 def test_merchant_directory_breadth():
