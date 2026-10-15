@@ -1,16 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SendMoneyPage } from './pages/SendMoneyPage';
 import { MerchantsPage } from './pages/MerchantsPage';
+import { RedTeamDrawer } from './components/RedTeamDrawer';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [currentTab, setCurrentTab] = useState<'dashboard' | 'send' | 'merchants'>('dashboard');
   const [prefilledPayVpa, setPrefilledPayVpa] = useState<string>('');
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+
+  // Global Keyboard listener for Shift + R
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && (e.key === 'R' || e.key === 'r')) {
+        e.preventDefault();
+        setDrawerOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   if (isLoading) {
     return (
@@ -51,6 +65,9 @@ const AppContent: React.FC = () => {
         )}
       </main>
 
+      {/* Red Team Attack Drawer */}
+      <RedTeamDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
       {/* Persistent Watermark Footer */}
       <footer className="border-t border-slate-200 bg-white py-3 px-6 text-xs text-slate-500">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -63,7 +80,11 @@ const AppContent: React.FC = () => {
             <span className="text-slate-500 text-[11px]">Fictional UPI Neobank Target System</span>
           </div>
 
-          <div className="font-mono text-slate-400 text-[11px] flex items-center space-x-1.5">
+          <div
+            onClick={() => setDrawerOpen(true)}
+            title="Open Red-Team Simulation Drawer"
+            className="font-mono text-slate-400 hover:text-slate-700 text-[11px] flex items-center space-x-1.5 cursor-pointer transition"
+          >
             <span>Red Team Simulation:</span>
             <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-slate-600 font-bold">Shift</kbd>
             <span>+</span>
