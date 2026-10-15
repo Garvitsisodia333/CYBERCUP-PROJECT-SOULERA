@@ -33,9 +33,9 @@ export interface RequestLogRecord {
 // ==========================================
 // 2. ALERT
 // ==========================================
-export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical' | 'informational';
 export type AlertStatus = 'open' | 'investigating' | 'resolved';
-export type AlertType = 'BOLA' | 'token_misuse' | 'scraping' | 'unauthorized_access' | 'brute_force';
+export type AlertType = 'BOLA' | 'token_misuse' | 'scraping' | 'unauthorized_access' | 'brute_force' | string;
 
 export interface Alert {
   alert_id: string;
@@ -50,6 +50,11 @@ export interface Alert {
   reason: string;
   request_ids: string[];
   recommendation: string;
+  identity_context?: any;
+  reasoning_chain?: string[];
+  priority_tag?: string;
+  is_downgraded?: boolean;
+  elevated_priority?: boolean;
 }
 
 // ==========================================

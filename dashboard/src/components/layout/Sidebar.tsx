@@ -7,7 +7,8 @@ import {
   Search,
   Award,
   Layers,
-  Sliders
+  Sliders,
+  Users
 } from 'lucide-react';
 import { useDashboardMetrics } from '../../api/metrics';
 
@@ -66,6 +67,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenDemoDrawer }) => {
           label: 'Posture & scores',
           icon: Search,
           badge: null,
+        },
+      ],
+    },
+    {
+      group: 'Identity',
+      question: 'Who is authorized?',
+      items: [
+        {
+          to: '/identity',
+          label: 'Identity & access',
+          icon: Users,
+          badge: 'ACTIVE',
+          badgeColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30',
         },
       ],
     },

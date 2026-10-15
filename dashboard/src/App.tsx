@@ -9,6 +9,7 @@ import { ApiDetailPage } from './pages/ApiDetailPage';
 import { TrafficPage } from './pages/TrafficPage';
 import { EvaluationPage } from './pages/EvaluationPage';
 import { DemoControlsPage } from './pages/DemoControlsPage';
+import { IdentityAccessPage } from './pages/IdentityAccessPage';
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
         <Route index element={<OverviewPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="alerts/:id" element={<InvestigationPage />} />
+        <Route path="identity" element={<IdentityAccessPage />} />
         <Route path="inventory" element={<InventoryPage />} />
         <Route path="inventory/:id" element={<ApiDetailPage />} />
         <Route path="traffic" element={<TrafficPage />} />

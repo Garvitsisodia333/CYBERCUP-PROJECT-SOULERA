@@ -29,9 +29,11 @@ def test_checkpoint12_onboard_vp_and_receive_scoped_token():
         region="IT-Infra"
     )
 
+    import uuid
+    uid = uuid.uuid4().hex[:6]
     onboard_payload = {
         "name": "Suresh Raina",
-        "email": "suresh.raina@corp.bharatpay.com",
+        "email": f"suresh.raina.{uid}@corp.bharatpay.com",
         "role": "VP Sales",
         "department": "Sales",
         "region": "org-wide",
@@ -78,9 +80,11 @@ def test_checkpoint12_onboard_with_custom_scope_requires_grant_reason():
     )
 
     # 1. Custom scope with NO reason -> 400 Bad Request
+    import uuid
+    uid = uuid.uuid4().hex[:6]
     fail_payload = {
         "name": "Kavita Krishnan",
-        "email": "kavita.k@corp.bharatpay.com",
+        "email": f"kavita.fail.{uid}@corp.bharatpay.com",
         "role": "Sales Manager",
         "department": "Sales",
         "region": "West",
@@ -97,7 +101,7 @@ def test_checkpoint12_onboard_with_custom_scope_requires_grant_reason():
     # 2. Custom scope with valid reason and expiry -> 200 Success + AccessGrant stored
     pass_payload = {
         "name": "Kavita Krishnan",
-        "email": "kavita.k@corp.bharatpay.com",
+        "email": f"kavita.pass.{uid}@corp.bharatpay.com",
         "role": "Sales Manager",
         "department": "Sales",
         "region": "West",

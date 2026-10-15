@@ -83,6 +83,18 @@ export const DemoControlsPage: React.FC = () => {
       desc: 'Direct traffic hitting uncataloged route /internal/debug/tokens.',
       endpoint: 'GET /internal/debug/tokens',
     },
+    {
+      id: 'vp_campaign_traffic',
+      name: 'Onboard new VP + run Diwali Sale traffic',
+      desc: 'Provisions fresh VP Sales via /employees/onboard, registers campaign, and fires 2,000 in-scope lookups -> Alert SUPPRESSED (informational).',
+      endpoint: 'GET /api/v2/internal/reports/regional-sales',
+    },
+    {
+      id: 'stolen_vp_token',
+      name: 'Same VP token, suspicious geography',
+      desc: 'Replays the fresh VP token from Tor Exit node 185.220.101.5 -> Alert FIRES with elevated priority: privileged identity + anomalous context.',
+      endpoint: 'GET /api/v2/internal/reports/regional-sales',
+    },
   ];
 
   return (

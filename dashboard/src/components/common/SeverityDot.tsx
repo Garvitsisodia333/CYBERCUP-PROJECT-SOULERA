@@ -34,6 +34,12 @@ export const SeverityDot: React.FC<SeverityDotProps> = ({
           textColor: 'text-[#E5A100]',
           label: 'Medium',
         };
+      case 'informational':
+        return {
+          dotColor: 'bg-[#4C8DFF]',
+          textColor: 'text-[#4C8DFF]',
+          label: 'Informational',
+        };
       case 'low':
       default:
         return {

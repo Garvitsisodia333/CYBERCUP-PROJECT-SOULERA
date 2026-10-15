@@ -18,7 +18,7 @@ def test_openapi_spec_structure_and_coverage():
     paths = spec["paths"]
     
     # Documented endpoints that MUST be present
-    expected_paths = {
+    public_paths = {
         "/api/v2/auth/login",
         "/api/v2/auth/me",
         "/api/v2/accounts/{account_id}/statement",
@@ -26,7 +26,20 @@ def test_openapi_spec_structure_and_coverage():
         "/api/v2/payments/upi-transfer"
     }
 
-    assert set(paths.keys()) == expected_paths, f"Mismatch in documented paths. Found: {set(paths.keys())}"
+    internal_paths = {
+        "/api/v2/internal/reports/regional-sales",
+        "/api/v2/internal/reports/account-lookup/{account_id}",
+        "/api/v2/internal/reports/org-wide-summary",
+        "/api/v2/internal/reports/bulk-export"
+    }
+
+    for p in public_paths:
+        assert p in paths, f"Public path {p} missing from spec"
+
+    for p in internal_paths:
+        assert p in paths, f"Internal path {p} missing from spec"
+        method_def = list(paths[p].values())[0]
+        assert "internal" in method_def.get("tags", [])
 
 def test_shadow_and_zombie_endpoints_strictly_excluded():
     """Test 2: Spec strictly excludes the 2 shadow/zombie endpoints for detection testing."""

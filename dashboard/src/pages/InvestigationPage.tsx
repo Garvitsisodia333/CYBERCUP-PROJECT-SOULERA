@@ -160,11 +160,77 @@ export const InvestigationPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-[#8B929C] font-mono">
           <span>Threshold: baseline is ≤ 2 distinct accounts / session</span>
           <span>·</span>
-          <span>Observed: <strong className="text-[#E5484D]">{alert.request_ids.length} requests</strong></span>
+          <span>Observed: <strong className="text-[#E5484D]">{alert.request_ids ? alert.request_ids.length : 1} requests</strong></span>
           <span>·</span>
           <span>Classification: {alert.owasp}</span>
         </div>
       </div>
+
+      {/* Identity Context & Trust Block (Checkpoint 16) */}
+      {(alert.identity_context || (alert as any).identityContext || alert.reasoning_chain || (alert as any).reasoningChain || alert.priority_tag || (alert as any).priorityTag) && (
+        <div className="bg-[#171B22] border border-[#2D333F] rounded-[6px] p-4 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#252A31] pb-2">
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-[#E6E8EB]">
+              <Shield className="w-4 h-4 text-indigo-400" />
+              <span>Identity & Context Trust Analysis</span>
+            </div>
+            {(alert.priority_tag || (alert as any).priorityTag) && (
+              <span className={`text-[11px] font-mono px-2 py-0.5 rounded border uppercase ${
+                alert.is_downgraded || (alert as any).isDowngraded
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : 'bg-red-500/10 text-red-400 border-red-500/20'
+              }`}>
+                {alert.priority_tag || (alert as any).priorityTag}
+              </span>
+            )}
+          </div>
+
+          {/* Context Details Grid */}
+          {(alert.identity_context || (alert as any).identityContext) && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[12px] bg-[#0E1013] p-3 rounded-[6px] border border-[#252A31]">
+              <div>
+                <span className="text-[#8B929C] text-[11px] block">Privileged Role</span>
+                <span className="font-semibold text-indigo-300">
+                  {alert.identity_context?.role || (alert as any).identityContext?.role || 'VP Sales'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[#8B929C] text-[11px] block">Declared Scope</span>
+                <span className="font-mono text-amber-300">
+                  {alert.identity_context?.declared_scope || (alert as any).identityContext?.declaredScope || 'org-wide'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[#8B929C] text-[11px] block">Active Campaign</span>
+                <span className="font-medium text-emerald-400">
+                  {alert.identity_context?.active_campaign || (alert as any).identityContext?.activeCampaign || 'Diwali Sale 2026 (10x)'}
+                </span>
+              </div>
+              <div>
+                <span className="text-[#8B929C] text-[11px] block">Authorized Baseline</span>
+                <span className="font-mono text-white">
+                  {alert.identity_context?.effective_limit ? `${alert.identity_context.effective_limit}/day` : '5,000/day (Expanded)'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Reasoning Chain */}
+          {(alert.reasoning_chain || (alert as any).reasoningChain) && (
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-mono text-[#8B929C] uppercase block">Detection Reasoning Chain:</span>
+              <div className="space-y-1 bg-[#121419] p-3 rounded-[5px] border border-[#252A31] text-[12px] font-mono text-[#C9CDD3]">
+                {(alert.reasoning_chain || (alert as any).reasoningChain).map((step: string, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <span className="text-indigo-400 font-bold">›</span>
+                    <span>{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 3. Attack velocity chronology chart */}
       <div className="bg-[#15181D] border border-[#252A31] rounded-[6px] p-4 flex flex-col justify-between">
