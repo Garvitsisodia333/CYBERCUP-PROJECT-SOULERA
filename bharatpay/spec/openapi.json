@@ -1,0 +1,9 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "BharatPay Neobank API",
+    "description": "Intentionally partial OpenAPI specification covering only documented public endpoints for CC6-IC07 ASPM Discovery testing.",
+    "version": "2.0.0"
+  },
+  "paths": {}
+}
