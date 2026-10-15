@@ -6,6 +6,7 @@ from app.models.kyc import KYCRecord
 from app.models.merchant import Merchant
 from app.models.transaction import Transaction
 from app.models.request_log import RequestLog
+from app.models.organization import Role, Employee, AccessGrant, Campaign
 
 __all__ = [
     "Base",
@@ -15,5 +16,9 @@ __all__ = [
     "KYCRecord",
     "Merchant",
     "Transaction",
-    "RequestLog"
+    "RequestLog",
+    "Role",
+    "Employee",
+    "AccessGrant",
+    "Campaign"
 ]

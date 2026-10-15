@@ -11,6 +11,7 @@ class Account(Base):
     account_number = Column(String(20), unique=True, index=True, nullable=False)
     masked_account_number = Column(String(20), nullable=False)
     ifsc_code = Column(String(11), default="BPAY0001042", nullable=False)
+    region = Column(String(50), default="West", nullable=False, index=True)  # West, North, South, East
     # Strictly integer paise - 1 INR = 100 paise. Never float.
     balance_paise = Column(BigInteger, default=0, nullable=False)
     daily_limit_paise = Column(BigInteger, default=10000000, nullable=False)  # ₹1,00,000 in paise
