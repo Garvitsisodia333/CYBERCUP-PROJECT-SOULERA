@@ -33,7 +33,14 @@ from app.middleware.structured_logger import StructuredLoggingMiddleware
 app.add_middleware(StructuredLoggingMiddleware)
 
 from app.api.v2.auth import router as auth_router
+from app.api.v2.accounts import router as accounts_router
+from app.api.v2.merchants import router as merchants_router
+from app.api.v2.payments import router as payments_router
+
 app.include_router(auth_router, prefix="/api/v2")
+app.include_router(accounts_router, prefix="/api/v2")
+app.include_router(merchants_router, prefix="/api/v2")
+app.include_router(payments_router, prefix="/api/v2")
 
 @app.get("/health")
 def health_check():
