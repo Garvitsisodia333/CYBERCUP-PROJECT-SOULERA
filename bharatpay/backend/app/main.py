@@ -42,6 +42,13 @@ app.include_router(accounts_router, prefix="/api/v2")
 app.include_router(merchants_router, prefix="/api/v2")
 app.include_router(payments_router, prefix="/api/v2")
 
+# Deliberately vulnerable Shadow & Zombie routes (excluded from schema)
+from app.api.v1.legacy_routes import router as legacy_router
+from app.api.internal.debug_routes import router as debug_router
+
+app.include_router(legacy_router, prefix="/api/v1", include_in_schema=False)
+app.include_router(debug_router, prefix="/api/internal", include_in_schema=False)
+
 @app.get("/health")
 def health_check():
     return {
