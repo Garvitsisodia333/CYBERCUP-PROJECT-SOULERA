@@ -1,9 +1,761 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "BharatPay Neobank API",
-    "description": "Intentionally partial OpenAPI specification covering only documented public endpoints for CC6-IC07 ASPM Discovery testing.",
+    "title": "BharatPay Public Banking API",
+    "description": "Documented production API surface for BharatPay neobank services.",
     "version": "2.0.0"
   },
-  "paths": {}
+  "paths": {
+    "/api/v2/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login",
+        "description": "Authenticate a user via email/phone and password, or test OTP stub ('123456').\nIssues a signed JWT access token containing sub, account_id, role, iat, exp, jti.",
+        "operationId": "login_api_v2_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get Me",
+        "description": "Returns current authenticated user profile.\nGuarantees all PII is synthetic and PAN/Aadhaar are masked.",
+        "operationId": "get_me_api_v2_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/accounts/{account_id}/statement": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Get Account Statement",
+        "description": "Fetch account statement including balance, masked identifiers, KYC status, and last 10 transactions.\nSECURITY CONTROL: Enforces strict ownership. Returning 403 Forbidden for any other user's account ID.",
+        "operationId": "get_account_statement_api_v2_accounts__account_id__statement_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Account Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatementResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/upi/merchants": {
+      "get": {
+        "tags": [
+          "Merchants"
+        ],
+        "summary": "List Merchants",
+        "description": "Paginated directory of verified UPI merchants.\nSupports filtering and full text searching.",
+        "operationId": "list_merchants_api_v2_upi_merchants_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 20,
+              "title": "Limit"
+            },
+            "description": "Items per page"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Search by merchant name or category",
+              "title": "Search"
+            },
+            "description": "Search by merchant name or category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedMerchantsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/payments/upi-transfer": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Execute Upi Transfer",
+        "description": "Execute a peer-to-peer or peer-to-merchant UPI transfer.\nEnforces idempotency, sufficient funds, and daily transfer limit.\nAll currency is handled strictly in integer paise.",
+        "operationId": "execute_upi_transfer_api_v2_payments_upi_transfer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UPITransferRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UPITransferResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoginRequest": {
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "title": "Identifier"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "otp": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Otp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identifier"
+        ],
+        "title": "LoginRequest"
+      },
+      "MerchantItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "merchant_code": {
+            "type": "string",
+            "title": "Merchant Code"
+          },
+          "business_name": {
+            "type": "string",
+            "title": "Business Name"
+          },
+          "vpa": {
+            "type": "string",
+            "title": "Vpa"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "rating": {
+            "type": "number",
+            "title": "Rating"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "merchant_code",
+          "business_name",
+          "vpa",
+          "category",
+          "verified",
+          "rating"
+        ],
+        "title": "MerchantItem"
+      },
+      "PaginatedMerchantsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MerchantItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages"
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark",
+            "default": "SYNTHETIC TEST DATA \u2014 CC6-IC07"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "total_pages"
+        ],
+        "title": "PaginatedMerchantsResponse"
+      },
+      "StatementResponse": {
+        "properties": {
+          "account_id": {
+            "type": "integer",
+            "title": "Account Id"
+          },
+          "account_number_masked": {
+            "type": "string",
+            "title": "Account Number Masked"
+          },
+          "ifsc_code": {
+            "type": "string",
+            "title": "Ifsc Code"
+          },
+          "balance_paise": {
+            "type": "integer",
+            "title": "Balance Paise"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "daily_limit_paise": {
+            "type": "integer",
+            "title": "Daily Limit Paise"
+          },
+          "vpa": {
+            "type": "string",
+            "title": "Vpa"
+          },
+          "kyc_status": {
+            "type": "string",
+            "title": "Kyc Status"
+          },
+          "masked_pan": {
+            "type": "string",
+            "title": "Masked Pan"
+          },
+          "transactions": {
+            "items": {
+              "$ref": "#/components/schemas/TransactionItem"
+            },
+            "type": "array",
+            "title": "Transactions"
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark",
+            "default": "SYNTHETIC TEST DATA \u2014 CC6-IC07"
+          }
+        },
+        "type": "object",
+        "required": [
+          "account_id",
+          "account_number_masked",
+          "ifsc_code",
+          "balance_paise",
+          "currency",
+          "daily_limit_paise",
+          "vpa",
+          "kyc_status",
+          "masked_pan",
+          "transactions"
+        ],
+        "title": "StatementResponse"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "jti": {
+            "type": "string",
+            "title": "Jti"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "account_id": {
+            "type": "integer",
+            "title": "Account Id"
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark",
+            "default": "SYNTHETIC TEST DATA \u2014 CC6-IC07"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in",
+          "jti",
+          "user_id",
+          "account_id"
+        ],
+        "title": "TokenResponse"
+      },
+      "TransactionItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "txn_reference": {
+            "type": "string",
+            "title": "Txn Reference"
+          },
+          "from_vpa": {
+            "type": "string",
+            "title": "From Vpa"
+          },
+          "to_vpa": {
+            "type": "string",
+            "title": "To Vpa"
+          },
+          "amount_paise": {
+            "type": "integer",
+            "title": "Amount Paise"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "txn_reference",
+          "from_vpa",
+          "to_vpa",
+          "amount_paise",
+          "note",
+          "status",
+          "created_at"
+        ],
+        "title": "TransactionItem"
+      },
+      "UPITransferRequest": {
+        "properties": {
+          "from_vpa": {
+            "type": "string",
+            "title": "From Vpa"
+          },
+          "to_vpa": {
+            "type": "string",
+            "title": "To Vpa"
+          },
+          "amount_paise": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Amount Paise",
+            "description": "Amount in integer paise (e.g. 10000 = Rs 100)"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note",
+            "default": "UPI Transfer"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Idempotency Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "from_vpa",
+          "to_vpa",
+          "amount_paise"
+        ],
+        "title": "UPITransferRequest"
+      },
+      "UPITransferResponse": {
+        "properties": {
+          "txn_reference": {
+            "type": "string",
+            "title": "Txn Reference"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "from_vpa": {
+            "type": "string",
+            "title": "From Vpa"
+          },
+          "to_vpa": {
+            "type": "string",
+            "title": "To Vpa"
+          },
+          "amount_paise": {
+            "type": "integer",
+            "title": "Amount Paise"
+          },
+          "remaining_balance_paise": {
+            "type": "integer",
+            "title": "Remaining Balance Paise"
+          },
+          "daily_limit_remaining_paise": {
+            "type": "integer",
+            "title": "Daily Limit Remaining Paise"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "idempotent_replay": {
+            "type": "boolean",
+            "title": "Idempotent Replay",
+            "default": false
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark",
+            "default": "SYNTHETIC TEST DATA \u2014 CC6-IC07"
+          }
+        },
+        "type": "object",
+        "required": [
+          "txn_reference",
+          "status",
+          "from_vpa",
+          "to_vpa",
+          "amount_paise",
+          "remaining_balance_paise",
+          "daily_limit_remaining_paise",
+          "note",
+          "created_at"
+        ],
+        "title": "UPITransferResponse"
+      },
+      "UserProfileResponse": {
+        "properties": {
+          "user_code": {
+            "type": "string",
+            "title": "User Code"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "account_id": {
+            "type": "integer",
+            "title": "Account Id"
+          },
+          "account_number_masked": {
+            "type": "string",
+            "title": "Account Number Masked"
+          },
+          "vpa": {
+            "type": "string",
+            "title": "Vpa"
+          },
+          "kyc_status": {
+            "type": "string",
+            "title": "Kyc Status"
+          },
+          "masked_pan": {
+            "type": "string",
+            "title": "Masked Pan"
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark",
+            "default": "SYNTHETIC TEST DATA \u2014 CC6-IC07"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_code",
+          "email",
+          "phone",
+          "full_name",
+          "role",
+          "account_id",
+          "account_number_masked",
+          "vpa",
+          "kyc_status",
+          "masked_pan"
+        ],
+        "title": "UserProfileResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
 }
