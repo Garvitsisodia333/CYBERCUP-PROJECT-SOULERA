@@ -241,6 +241,250 @@
           }
         ]
       }
+    },
+    "/api/v2/internal/reports/regional-sales": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Regional Sales & Turnover Report",
+        "description": "Sales Manager+ endpoint for regional sales metrics. Enforces assigned regional jurisdiction server-side.",
+        "operationId": "get_regional_sales_report",
+        "parameters": [
+          {
+            "name": "region",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "West"
+            },
+            "description": "Target region (West, North, South, East)"
+          },
+          {
+            "name": "date_range",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "30d"
+            },
+            "description": "Time window"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Scope or role violation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/reports/account-lookup/{account_id}": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Internal Support Account Lookup",
+        "description": "Customer support escalation account query. Requires mandatory business reason and enforces regional jurisdiction.",
+        "operationId": "lookup_account_internal",
+        "parameters": [
+          {
+            "name": "account_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Mandatory business justification / dispute ticket #"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "400": {
+            "description": "Missing mandatory reason"
+          },
+          "403": {
+            "description": "Cross-regional scope violation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/reports/org-wide-summary": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Org-Wide Executive Liquidity Summary",
+        "description": "Executive reporting endpoint strictly restricted to VP Sales. Provides bank-wide KPIs and regional liquidity.",
+        "operationId": "get_org_wide_summary_internal",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Restricted to VP Sales"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/reports/bulk-export": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Bulk Export Operational Data",
+        "description": "Privileged bulk export for Regional Head+ roles with reason auditing and scope verification.",
+        "operationId": "bulk_export_reports_internal",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "reason"
+                ],
+                "properties": {
+                  "region": {
+                    "type": "string"
+                  },
+                  "export_format": {
+                    "type": "string",
+                    "default": "json"
+                  },
+                  "include_transactions": {
+                    "type": "boolean",
+                    "default": true
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Role or scope forbidden"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/employees/onboard": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Employee Provisioning & Scoped Token Issuance",
+        "description": "IT Admin onboarding endpoint granting bounded default role scope or explicit access grants.",
+        "operationId": "onboard_employee_internal",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Privilege escalation rejected"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/campaigns": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Register Sanctioned Business Campaign Window",
+        "description": "Registers sanctioned high-traffic campaign event informing detection engine of expected traffic multipliers.",
+        "operationId": "create_campaign_internal",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Unauthorized role"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v2/internal/employees/{id}/access-log": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "Employee Telemetry Audit Trail",
+        "description": "Audit log of actions performed by employee identity.",
+        "operationId": "get_employee_access_log_internal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
