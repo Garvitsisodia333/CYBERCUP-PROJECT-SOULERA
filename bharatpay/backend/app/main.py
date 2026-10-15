@@ -29,6 +29,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.api.v2.auth import router as auth_router
+app.include_router(auth_router, prefix="/api/v2")
+
 @app.get("/health")
 def health_check():
     return {
