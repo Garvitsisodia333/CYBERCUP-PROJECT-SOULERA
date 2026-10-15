@@ -374,6 +374,109 @@ let inventory = [
 
 let alerts = [
   {
+    id: 'alt-identity-01',
+    alert_id: 'alt-identity-01',
+    title: 'Privileged Access: 2,000 Accounts Inspected by VP Sales during Diwali Sale 2026',
+    severity: 'informational',
+    category: 'Sanctioned Privileged Campaign',
+    status: 'active',
+    timestamp: '2026-10-15T10:30:00Z',
+    targetEndpoint: '/api/v2/internal/reports/regional-sales',
+    targetMethod: 'GET',
+    actorIp: '103.21.244.1',
+    actorCountry: 'India (Corporate Ingress)',
+    actorFingerprint: 'JA3: e24a899014238b1b',
+    owaspCategory: 'API1:2023 - Broken Object Level Authorization (Suppressed/Downgraded)',
+    requestCount: 2000,
+    blastRadius: '2,000 Regional Customer Records (Sanctioned Campaign)',
+    isDowngraded: true,
+    priorityTag: 'downgraded: sanctioned campaign activity',
+    reasoningChain: [
+      'role=VP, scope=org-wide, campaign=Diwali Sale 2026 active, volume within 5000/day limit -> informational',
+      'Provisioned VP, in-scope, active campaign — downgraded from High to Informational'
+    ],
+    identityContext: {
+      employeeId: 'EMP-1002',
+      name: 'Sunita Rao',
+      role: 'VP Sales',
+      department: 'Sales',
+      declaredScope: 'org-wide',
+      activeCampaign: 'Diwali Sale 2026',
+      baselineLimit: 200,
+      campaignMultiplier: 10,
+      effectiveLimit: 5000,
+      volumeUsed: 2000
+    },
+    summary: 'Provisioned VP Sunita Rao accessed 2,000 accounts during active Diwali Sale 2026 campaign. Activity falls completely within declared org-wide scope and authorized 5,000/day multiplier limit. Downgraded from High to Informational.',
+    assignedTo: 'Compliance Audit Lead'
+  },
+  {
+    id: 'alt-identity-02',
+    alert_id: 'alt-identity-02',
+    title: 'Stolen Privileged Token / Geo-Anomaly on VP Sales (EMP-1002)',
+    severity: 'critical',
+    category: 'Stolen Privileged Identity',
+    status: 'active',
+    timestamp: '2026-10-15T11:15:22Z',
+    targetEndpoint: '/api/v2/internal/reports/regional-sales',
+    targetMethod: 'GET',
+    actorIp: '185.220.101.5',
+    actorCountry: 'Netherlands (Tor Exit Relay)',
+    actorFingerprint: 'JA3: 771,4865-4866-4867,0-23-65281-10-11',
+    owaspCategory: 'API2:2023 - Broken Authentication',
+    requestCount: 150,
+    blastRadius: 'VP Corporate Session Compromise',
+    elevatedPriority: true,
+    priorityTag: 'elevated priority: privileged identity + anomalous context',
+    reasoningChain: [
+      'Token claims VP Sales (EMP-1002) but request originates from Tor Exit Node 185.220.101.5 (Netherlands) with no prior session overlap.',
+      'elevated priority: privileged identity + anomalous context'
+    ],
+    identityContext: {
+      employeeId: 'EMP-1002',
+      name: 'Sunita Rao',
+      role: 'VP Sales',
+      declaredScope: 'org-wide',
+      anomaly: 'Untrusted origin: 185.220.101.5 (Netherlands Tor Exit)'
+    },
+    summary: 'Stolen VP Sales session token replayed from Netherlands Tor Exit node. High-privilege identity observed under anomalous foreign context. Priority elevated to Critical for immediate active defense containment.',
+    assignedTo: 'SecOps Incident Response'
+  },
+  {
+    id: 'alt-identity-03',
+    alert_id: 'alt-identity-03',
+    title: 'Cross-Jurisdiction Scope Violation: Sales Manager (West) accessed East accounts',
+    severity: 'high',
+    category: 'Privileged Scope Violation',
+    status: 'active',
+    timestamp: '2026-10-15T11:45:00Z',
+    targetEndpoint: '/api/v2/internal/reports/account-lookup/{account_id}',
+    targetMethod: 'GET',
+    actorIp: '103.45.120.10',
+    actorCountry: 'India (Corporate West Branch)',
+    actorFingerprint: 'JA3: f112bb456980',
+    owaspCategory: 'API1:2023 - Broken Object Level Authorization',
+    requestCount: 5,
+    blastRadius: '5 Out-of-Scope East Accounts Queried',
+    elevatedPriority: true,
+    priorityTag: 'elevated priority: privileged identity + anomalous context',
+    reasoningChain: [
+      'role=Sales Manager, declared_scope=region:West, accessed accounts in region:East -> scope violation.',
+      'Accessing even one account outside declared scope raises an immediate alert, regardless of seniority.',
+      'elevated priority: privileged identity + anomalous context'
+    ],
+    identityContext: {
+      employeeId: 'EMP-1006',
+      name: 'Sanjay Patel',
+      role: 'Sales Manager',
+      department: 'Sales',
+      declaredScope: 'region:West',
+      violation: 'Attempted query of 5 accounts in region East'
+    },
+    summary: 'West Regional Sales Manager Sanjay Patel attempted to access customer accounts located in East region. Server-side scope enforcement rejected queries and raised elevated alert.',
+    assignedTo: 'Regional Compliance Officer'
+  },
+  {
     id: 'alt-9821',
     title: 'BOLA / IDOR High-Volume Exploitation on /api/v2/users/{id}/financial-profile',
     severity: 'critical',

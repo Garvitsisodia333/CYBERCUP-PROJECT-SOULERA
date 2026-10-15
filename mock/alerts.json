@@ -1,5 +1,101 @@
 [
   {
+    "alert_id": "alt-identity-01",
+    "type": "Sanctioned Campaign Access",
+    "owasp": "API1:2023 BOLA (Suppressed/Downgraded)",
+    "severity": "informational",
+    "api": "GET /api/v2/internal/reports/regional-sales",
+    "actor": "EMP-1002 (Sunita Rao, VP Sales)",
+    "first_seen": "2026-10-15T10:30:00Z",
+    "last_seen": "2026-10-15T10:35:12Z",
+    "status": "investigating",
+    "is_downgraded": true,
+    "priority_tag": "downgraded: sanctioned campaign activity",
+    "reason": "role=VP, scope=org-wide, campaign=Diwali Sale 2026 active, volume within 5000/day limit -> informational",
+    "reasoning_chain": [
+      "role=VP, scope=org-wide, campaign=Diwali Sale 2026 active, volume within 5000/day limit -> informational",
+      "Provisioned VP, in-scope, active campaign \u2014 downgraded from High to Informational"
+    ],
+    "identity_context": {
+      "employee_id": "EMP-1002",
+      "name": "Sunita Rao",
+      "role": "VP Sales",
+      "department": "Sales",
+      "declared_scope": "org-wide",
+      "active_campaign": "Diwali Sale 2026",
+      "baseline_limit": 200,
+      "campaign_multiplier": 10,
+      "effective_limit": 5000,
+      "volume_used": 2000
+    },
+    "request_ids": [
+      "req-id01-001",
+      "req-id01-002"
+    ],
+    "recommendation": "Maintain audit log. No active defense block required for sanctioned business campaign."
+  },
+  {
+    "alert_id": "alt-identity-02",
+    "type": "Stolen Privileged Token",
+    "owasp": "API2:2023 Broken Authentication",
+    "severity": "critical",
+    "api": "GET /api/v2/internal/reports/regional-sales",
+    "actor": "EMP-1002 (Compromised Credential)",
+    "first_seen": "2026-10-15T11:15:22Z",
+    "last_seen": "2026-10-15T11:18:45Z",
+    "status": "open",
+    "elevated_priority": true,
+    "priority_tag": "elevated priority: privileged identity + anomalous context",
+    "reason": "elevated priority: privileged identity + anomalous context. Token claims VP Sales but request originates from Tor Exit Node 185.220.101.5 (Netherlands).",
+    "reasoning_chain": [
+      "Token claims VP Sales (EMP-1002) but request originates from Tor Exit Node 185.220.101.5 (Netherlands) with no prior session overlap.",
+      "elevated priority: privileged identity + anomalous context"
+    ],
+    "identity_context": {
+      "employee_id": "EMP-1002",
+      "name": "Sunita Rao",
+      "role": "VP Sales",
+      "declared_scope": "org-wide",
+      "anomaly": "Untrusted origin: 185.220.101.5 (Netherlands Tor Exit)"
+    },
+    "request_ids": [
+      "req-id02-001",
+      "req-id02-002"
+    ],
+    "recommendation": "IMMEDIATELY revoke corporate JWT session and quarantine actor IP across WAF."
+  },
+  {
+    "alert_id": "alt-identity-03",
+    "type": "Privileged Scope Violation",
+    "owasp": "API1:2023 BOLA",
+    "severity": "high",
+    "api": "GET /api/v2/internal/reports/account-lookup/{account_id}",
+    "actor": "EMP-1006 (Sanjay Patel, Sales Manager)",
+    "first_seen": "2026-10-15T11:45:00Z",
+    "last_seen": "2026-10-15T11:46:10Z",
+    "status": "open",
+    "elevated_priority": true,
+    "priority_tag": "elevated priority: privileged identity + anomalous context",
+    "reason": "elevated priority: privileged identity + anomalous context. Sales Manager (region=West) attempted cross-regional query on 5 accounts in region=East.",
+    "reasoning_chain": [
+      "role=Sales Manager, declared_scope=region:West, accessed accounts in region:East -> scope violation.",
+      "Accessing even one account outside declared scope raises an immediate alert, regardless of seniority.",
+      "elevated priority: privileged identity + anomalous context"
+    ],
+    "identity_context": {
+      "employee_id": "EMP-1006",
+      "name": "Sanjay Patel",
+      "role": "Sales Manager",
+      "department": "Sales",
+      "declared_scope": "region:West",
+      "violation": "Attempted query of 5 accounts in region East"
+    },
+    "request_ids": [
+      "req-id03-001"
+    ],
+    "recommendation": "Audit manager recent activity and notify Regional Head."
+  },
+  {
     "alert_id": "alt-01",
     "type": "BOLA",
     "owasp": "API1:2023 BOLA",
