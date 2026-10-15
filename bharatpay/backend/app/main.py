@@ -42,6 +42,9 @@ app.include_router(accounts_router, prefix="/api/v2")
 app.include_router(merchants_router, prefix="/api/v2")
 app.include_router(payments_router, prefix="/api/v2")
 
+from app.api.v2.endpoints.provisioning import router as provisioning_router
+app.include_router(provisioning_router, prefix="/api/v2/internal")
+
 # Deliberately vulnerable Shadow & Zombie routes (excluded from schema)
 from app.api.v1.legacy_routes import router as legacy_router
 from app.api.internal.debug_routes import router as debug_router

@@ -159,15 +159,26 @@ class StructuredLoggingMiddleware(BaseHTTPMiddleware):
         return "127.0.0.1"
 
     def _extract_auth_info(self, request: Request) -> tuple[str, str | None, str | None]:
-        # Check if auth details were captured by deps.py
+        # Check if auth details were captured by deps.py or internal_auth.py
         token_id = getattr(request.state, "token_id", None)
-        user_id = getattr(request.state, "user_id", None)
+        user_id = getattr(request.state, "user_id", None) or getattr(request.state, "actor_employee_id", None)
         auth_type = getattr(request.state, "auth_type", None)
 
         auth_header = request.headers.get("authorization", "")
         if auth_header.lower().startswith("bearer "):
             if not auth_type:
                 auth_type = "bearer"
+            if not user_id or not token_id:
+                try:
+                    import jwt
+                    raw_token = auth_header.split(" ", 1)[1].strip()
+                    unverified = jwt.decode(raw_token, options={"verify_signature": False})
+                    if not token_id:
+                        token_id = unverified.get("jti")
+                    if not user_id:
+                        user_id = unverified.get("employee_id") or (str(unverified.get("sub")) if unverified.get("sub") is not None else None)
+                except Exception:
+                    pass
         elif "x-debug-key" in request.headers:
             auth_type = "debug_key"
         elif not auth_type:
