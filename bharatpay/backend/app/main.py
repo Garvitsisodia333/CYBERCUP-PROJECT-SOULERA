@@ -29,6 +29,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from app.middleware.structured_logger import StructuredLoggingMiddleware
+app.add_middleware(StructuredLoggingMiddleware)
+
 from app.api.v2.auth import router as auth_router
 app.include_router(auth_router, prefix="/api/v2")
 
