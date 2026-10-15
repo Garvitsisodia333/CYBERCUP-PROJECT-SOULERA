@@ -1,4 +1,4 @@
-# .DEFENSE — CYBERCUP 2026
+# Perimeter — CYBERCUP 2026
 ## Autonomous API Security Posture Management & Active Threat Neutralization
 
 A full-stack, enterprise-grade API Security Posture Management (ASPM) platform and active defense system designed for modern microservice environments. 
