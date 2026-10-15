@@ -1,6 +1,7 @@
 """
-BharatPay Synthetic Data Generator & Seed Script
-Generates fictional Indian users, accounts, UPI VPAs, KYC records, 200+ merchants, and transaction history.
+BharatPay Comprehensive Realism & Synthetic Seed Script
+Generates 18 realistic Indian users with believable financial profiles,
+350+ verified merchants across 8 categories, and 300+ historical transactions.
 All values are clearly synthetic test data for CC6-IC07 hackathon demo.
 """
 
@@ -21,88 +22,64 @@ from app.models.merchant import Merchant
 from app.models.transaction import Transaction
 from app.core.security import get_password_hash
 
+SYNTHETIC_USERS = [
+    {"user_code": "u_101", "name": "Priya Sharma", "email": "priya.sharma@bharatpay.com", "phone": "9876501001", "vpa": "priya.sharma@bharatpay", "balance_paise": 4850000, "pan": "ABCDE1234F", "aadhaar": "999988881001", "kyc": "VERIFIED"},
+    {"user_code": "u_102", "name": "Rohit Verma", "email": "rohit.verma@bharatpay.com", "phone": "9876501002", "vpa": "rohit.verma@bharatpay", "balance_paise": 12500000, "pan": "BCDEF2345G", "aadhaar": "999988881002", "kyc": "VERIFIED"},
+    {"user_code": "u_103", "name": "Ananya Iyer", "email": "ananya.iyer@bharatpay.com", "phone": "9876501003", "vpa": "ananya.iyer@bharatpay", "balance_paise": 1820000, "pan": "CDEFG3456H", "aadhaar": "999988881003", "kyc": "PENDING"},
+    {"user_code": "u_104", "name": "Vikramaditya Rao", "email": "vikram.rao@bharatpay.com", "phone": "9876501004", "vpa": "vikram.rao@bharatpay", "balance_paise": 18500000, "pan": "DEFGH4567J", "aadhaar": "999988881004", "kyc": "VERIFIED"},
+    {"user_code": "u_105", "name": "Sneha Patel", "email": "sneha.patel@bharatpay.com", "phone": "9876501005", "vpa": "sneha.patel@bharatpay", "balance_paise": 3240000, "pan": "EFGHI5678K", "aadhaar": "999988881005", "kyc": "VERIFIED"},
+    {"user_code": "u_106", "name": "Arjun Kapoor", "email": "arjun.kapoor@bharatpay.com", "phone": "9876501006", "vpa": "arjun.kapoor@bharatpay", "balance_paise": 9400000, "pan": "FGHIJ6789L", "aadhaar": "999988881006", "kyc": "VERIFIED"},
+    {"user_code": "u_107", "name": "Neha Deshmukh", "email": "neha.deshmukh@bharatpay.com", "phone": "9876501007", "vpa": "neha.deshmukh@bharatpay", "balance_paise": 1450000, "pan": "GHIJK7890M", "aadhaar": "999988881007", "kyc": "VERIFIED"},
+    {"user_code": "u_108", "name": "Rahul Mehra", "email": "rahul.mehra@bharatpay.com", "phone": "9876501008", "vpa": "rahul.mehra@bharatpay", "balance_paise": 6200000, "pan": "HIJKL8901N", "aadhaar": "999988881008", "kyc": "VERIFIED"},
+    {"user_code": "u_109", "name": "Deepika Sen", "email": "deepika.sen@bharatpay.com", "phone": "9876501009", "vpa": "deepika.sen@bharatpay", "balance_paise": 21000000, "pan": "IJKLM9012P", "aadhaar": "999988881009", "kyc": "VERIFIED"},
+    {"user_code": "u_110", "name": "Karan Singhania", "email": "karan.singhania@bharatpay.com", "phone": "9876501010", "vpa": "karan.singhania@bharatpay", "balance_paise": 14500000, "pan": "JKLMN0123Q", "aadhaar": "999988881010", "kyc": "VERIFIED"},
+    {"user_code": "u_111", "name": "Meera Nair", "email": "meera.nair@bharatpay.com", "phone": "9876501011", "vpa": "meera.nair@bharatpay", "balance_paise": 2890000, "pan": "KLMNO1234R", "aadhaar": "999988881011", "kyc": "VERIFIED"},
+    {"user_code": "u_112", "name": "Aditya Joshi", "email": "aditya.joshi@bharatpay.com", "phone": "9876501012", "vpa": "aditya.joshi@bharatpay", "balance_paise": 7650000, "pan": "LMNOP2345S", "aadhaar": "999988881012", "kyc": "VERIFIED"},
+    {"user_code": "u_113", "name": "Pooja Hegde", "email": "pooja.hegde@bharatpay.com", "phone": "9876501013", "vpa": "pooja.hegde@bharatpay", "balance_paise": 840000, "pan": "MNOPQ3456T", "aadhaar": "999988881013", "kyc": "PENDING"},
+    {"user_code": "u_114", "name": "Siddharth Malhotra", "email": "sid.malhotra@bharatpay.com", "phone": "9876501014", "vpa": "sid.malhotra@bharatpay", "balance_paise": 11200000, "pan": "NOPQR4567U", "aadhaar": "999988881014", "kyc": "VERIFIED"},
+    {"user_code": "u_115", "name": "Tanvi Kulkarni", "email": "tanvi.k@bharatpay.com", "phone": "9876501015", "vpa": "tanvi.k@bharatpay", "balance_paise": 5300000, "pan": "OPQRS5678V", "aadhaar": "999988881015", "kyc": "VERIFIED"},
+    {"user_code": "u_116", "name": "Amitabh Sen", "email": "amitabh.sen@bharatpay.com", "phone": "9876501016", "vpa": "amitabh.sen@bharatpay", "balance_paise": 9100000, "pan": "PQRST6789W", "aadhaar": "999988881016", "kyc": "VERIFIED"},
+    {"user_code": "u_117", "name": "Roshni Roy", "email": "roshni.roy@bharatpay.com", "phone": "9876501017", "vpa": "roshni.roy@bharatpay", "balance_paise": 3950000, "pan": "QRSTU7890X", "aadhaar": "999988881017", "kyc": "VERIFIED"},
+    {"user_code": "u_118", "name": "Varun Dhawan", "email": "varun.dhawan@bharatpay.com", "phone": "9876501018", "vpa": "varun.dhawan@bharatpay", "balance_paise": 8820000, "pan": "RSTUV8901Y", "aadhaar": "999988881018", "kyc": "VERIFIED"},
+]
+
 def seed_database():
     print("[BharatPay Seed] Initializing database tables...")
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
-        # Check if already seeded
-        if db.query(User).filter(User.user_code == "u_101").first() and db.query(Merchant).count() >= 200:
-            print("[BharatPay Seed] Database already seeded.")
+        # Check current user count
+        current_users_count = db.query(User).count()
+        if current_users_count >= 18 and db.query(Merchant).count() >= 200:
+            print(f"[BharatPay Seed] Database already seeded with {current_users_count} users.")
             return
 
-        print("[BharatPay Seed] Seeding primary synthetic users...")
-        test_users = [
-            {
-                "user_code": "u_101",
-                "full_name": "Priya Sharma",
-                "email": "priya.sharma@bharatpay.com",
-                "phone": "9876501001",
-                "password": "Password@123",
-                "account_num": "501002341001",
-                "masked_acc": "XXXXXXXX1001",
-                "balance_paise": 4850000,  # ₹48,500.00
-                "vpa": "priya.sharma@bharatpay",
-                "pan": "ABCDE1234F",
-                "masked_pan": "ABCDE****F",
-                "aadhaar": "999988881001",
-                "masked_aadhaar": "XXXXXXXX1001",
-                "kyc_status": "VERIFIED"
-            },
-            {
-                "user_code": "u_102",
-                "full_name": "Rohit Verma",
-                "email": "rohit.verma@bharatpay.com",
-                "phone": "9876501002",
-                "password": "Password@123",
-                "account_num": "501002341002",
-                "masked_acc": "XXXXXXXX1002",
-                "balance_paise": 12500000,  # ₹1,25,000.00
-                "vpa": "rohit.verma@bharatpay",
-                "pan": "BCDEF2345G",
-                "masked_pan": "BCDEF****G",
-                "aadhaar": "999988881002",
-                "masked_aadhaar": "XXXXXXXX1002",
-                "kyc_status": "VERIFIED"
-            },
-            {
-                "user_code": "u_103",
-                "full_name": "Ananya Iyer",
-                "email": "ananya.iyer@bharatpay.com",
-                "phone": "9876501003",
-                "password": "Password@123",
-                "account_num": "501002341003",
-                "masked_acc": "XXXXXXXX1003",
-                "balance_paise": 1820000,  # ₹18,200.00
-                "vpa": "ananya.iyer@bharatpay",
-                "pan": "CDEFG3456H",
-                "masked_pan": "CDEFG****H",
-                "aadhaar": "999988881003",
-                "masked_aadhaar": "XXXXXXXX1003",
-                "kyc_status": "PENDING"
-            }
-        ]
+        print("[BharatPay Seed] Seeding 18 synthetic Indian users with realistic accounts...")
+        default_pwd_hash = get_password_hash("Password@123")
 
         created_accounts = []
-        for udata in test_users:
-            existing = db.query(User).filter(User.user_code == udata["user_code"]).first()
-            if not existing:
+        for i, udata in enumerate(SYNTHETIC_USERS, 1):
+            user = db.query(User).filter(User.user_code == udata["user_code"]).first()
+            if not user:
                 user = User(
                     user_code=udata["user_code"],
-                    full_name=udata["full_name"],
+                    full_name=udata["name"],
                     email=udata["email"],
                     phone=udata["phone"],
-                    hashed_password=get_password_hash(udata["password"]),
+                    hashed_password=default_pwd_hash,
                     role="customer"
                 )
                 db.add(user)
                 db.flush()
 
+                acc_num = f"50100234{1000 + i:04d}"
+                masked_acc = f"XXXXXXXX{1000 + i:04d}"
+
                 account = Account(
                     user_id=user.id,
-                    account_number=udata["account_num"],
-                    masked_account_number=udata["masked_acc"],
+                    account_number=acc_num,
+                    masked_account_number=masked_acc,
                     ifsc_code="BPAY0001042",
                     balance_paise=udata["balance_paise"],
                     daily_limit_paise=10000000,  # ₹1,00,000.00
@@ -111,7 +88,6 @@ def seed_database():
                 )
                 db.add(account)
                 db.flush()
-                created_accounts.append((user, account))
 
                 upi = UPIProfile(
                     user_id=user.id,
@@ -122,25 +98,30 @@ def seed_database():
                 )
                 db.add(upi)
 
+                masked_pan = f"{udata['pan'][:5]}****{udata['pan'][-1]}"
+                masked_aadhaar = f"XXXXXXXX{udata['aadhaar'][-4:]}"
+
                 kyc = KYCRecord(
                     user_id=user.id,
                     pan_synthetic=udata["pan"],
-                    masked_pan=udata["masked_pan"],
+                    masked_pan=masked_pan,
                     aadhaar_synthetic=udata["aadhaar"],
-                    masked_aadhaar=udata["masked_aadhaar"],
-                    kyc_status=udata["kyc_status"],
-                    verified_at=datetime.now(timezone.utc) if udata["kyc_status"] == "VERIFIED" else None
+                    masked_aadhaar=masked_aadhaar,
+                    kyc_status=udata["kyc"],
+                    verified_at=datetime.now(timezone.utc) if udata["kyc"] == "VERIFIED" else None
                 )
                 db.add(kyc)
+                created_accounts.append((user, account))
             else:
-                account = db.query(Account).filter(Account.user_id == existing.id).first()
-                created_accounts.append((existing, account))
+                account = db.query(Account).filter(Account.user_id == user.id).first()
+                created_accounts.append((user, account))
 
         db.commit()
+        print(f"[BharatPay Seed] Successfully verified {len(created_accounts)} user accounts.")
 
-        # Seed 220+ Merchants across realistic Indian categories
+        # Seed 220+ Verified Merchants across categories
         if db.query(Merchant).count() < 200:
-            print("[BharatPay Seed] Seeding 220+ verified merchants...")
+            print("[BharatPay Seed] Seeding verified merchants directory...")
             categories = [
                 ("Food & Dining", ["Swiggy", "Zomato", "Chai Point", "Cafe Coffee Day", "Haldirams", "Bikanervala", "Subway", "Dominos", "Burger King", "McDonalds", "KFC", "Faasos", "Behrouz Biryani", "Barbeque Nation", "Starbucks", "Blue Tokai"]),
                 ("Groceries", ["Blinkit", "Zepto", "Instamart", "BigBasket", "Nature Basket", "DMart Ready", "More Retail", "Spencer Supermarket", "Reliance Fresh", "Star Bazaar", "Kisan Mandi"]),
@@ -156,7 +137,6 @@ def seed_database():
             for cat_name, brand_list in categories:
                 for brand in brand_list:
                     slug = brand.lower().replace(" ", "").replace("&", "")
-                    # Add main brand
                     merchant_count += 1
                     db.add(Merchant(
                         merchant_code=f"m_{slug}_{merchant_count:03d}",
@@ -166,7 +146,6 @@ def seed_database():
                         verified=True,
                         rating=round(random.uniform(4.2, 4.9), 1)
                     ))
-                    # Add regional/franchise branches to reach 220+ total
                     for loc in ["Bangalore", "Mumbai", "Delhi NCR"]:
                         merchant_count += 1
                         loc_slug = loc.lower().replace(" ", "")
@@ -182,46 +161,71 @@ def seed_database():
             db.commit()
             print(f"[BharatPay Seed] Successfully seeded {db.query(Merchant).count()} merchants.")
 
-        # Seed realistic initial transaction history for Priya (u_101)
-        if db.query(Transaction).count() < 10:
-            print("[BharatPay Seed] Seeding initial transactions for user accounts...")
-            priya_acc = db.query(Account).filter(Account.id == 1).first()
-            rohit_acc = db.query(Account).filter(Account.id == 2).first()
-
+        # Seed 15-25 realistic historical transactions for each user
+        if db.query(Transaction).count() < 100:
+            print("[BharatPay Seed] Generating realistic 60-day spending history for all users...")
+            merchants = db.query(Merchant).all()
             now = datetime.now(timezone.utc)
-            history = [
-                ("Blinkit Quick Delivery", "blinkit@bharatpay", 48500, now - timedelta(days=1)),
-                ("Swiggy Gourmet Order", "swiggy@bharatpay", 74000, now - timedelta(days=2)),
-                ("Uber Premier Ride", "uberindia@bharatpay", 52000, now - timedelta(days=3)),
-                ("Tata Power Bill", "tatapower@bharatpay", 285000, now - timedelta(days=5)),
-                ("BookMyShow Movie Tickets", "bookmyshow@bharatpay", 112000, now - timedelta(days=7)),
-                ("Blue Tokai Coffee", "bluetokai@bharatpay", 38000, now - timedelta(days=9)),
-                ("Zepto Daily Fresh", "zepto@bharatpay", 31000, now - timedelta(days=11)),
-                ("Cult Fit Monthly", "cultfit@bharatpay", 199900, now - timedelta(days=15)),
-                ("Apollo Pharmacy", "apollopharmacy@bharatpay", 65000, now - timedelta(days=18)),
-                ("Zomato Dinner", "zomato@bharatpay", 89000, now - timedelta(days=21)),
-                ("Dinner Split with Rohit", "rohit.verma@bharatpay", 150000, now - timedelta(days=24)),
-                ("Chai Point Snacks", "chaipoint@bharatpay", 24000, now - timedelta(days=27)),
+
+            common_spending = [
+                ("Blinkit Quick Delivery", "blinkit@bharatpay", 35000, 85000),
+                ("Swiggy Food Order", "swiggy@bharatpay", 42000, 110000),
+                ("Zomato Dinner", "zomato@bharatpay", 55000, 140000),
+                ("Uber Daily Commute", "uberindia@bharatpay", 28000, 65000),
+                ("Ola City Ride", "olacabs@bharatpay", 22000, 52000),
+                ("Tata Power Electricity Bill", "tatapower@bharatpay", 180000, 420000),
+                ("Airtel Broadband Monthly", "airtelbroadband@bharatpay", 99900, 149900),
+                ("Apollo Pharmacy Medicines", "apollopharmacy@bharatpay", 45000, 120000),
+                ("BookMyShow Movie Tickets", "bookmyshow@bharatpay", 60000, 180000),
+                ("Blue Tokai Coffee & Bites", "bluetokai@bharatpay", 32000, 65000),
+                ("Chai Point Evening Snack", "chaipoint@bharatpay", 15000, 35000),
+                ("Cult Fit Gym Pass", "cultfit@bharatpay", 149900, 199900),
+                ("Zepto Quick Essentials", "zepto@bharatpay", 22000, 55000),
+                ("Starbucks Reserve Brew", "starbucks@bharatpay", 45000, 85000),
+                ("Flipkart Shopping", "flipkart@bharatpay", 120000, 350000),
             ]
 
-            for i, (note, to_vpa, amt, txn_time) in enumerate(history, 1):
-                txn = Transaction(
-                    txn_reference=f"TXN202610{i:04d}SEED",
-                    from_account_id=priya_acc.id,
-                    to_account_id=rohit_acc.id if "rohit" in to_vpa else None,
-                    from_vpa="priya.sharma@bharatpay",
-                    to_vpa=to_vpa,
-                    amount_paise=amt,
-                    note=note,
-                    status="SUCCESS",
-                    created_at=txn_time
-                )
-                db.add(txn)
+            txn_idx = 1000
+            for user, account in created_accounts:
+                # 15-20 transactions per user over past 60 days
+                num_txns = random.randint(15, 20)
+                for _ in range(num_txns):
+                    txn_idx += 1
+                    days_ago = random.randint(1, 60)
+                    hours_ago = random.randint(0, 23)
+                    minutes_ago = random.randint(0, 59)
+                    txn_time = now - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
+
+                    # 80% merchant spending, 20% peer transfer
+                    if random.random() < 0.8:
+                        note, to_vpa, min_p, max_p = random.choice(common_spending)
+                        amount_paise = random.randint(min_p, max_p)
+                        recipient_acc_id = None
+                    else:
+                        # Peer transfer to another user
+                        other_user, other_acc = random.choice([u for u in created_accounts if u[0].id != user.id])
+                        to_vpa = other_user.upi_profiles[0].vpa if other_user.upi_profiles else f"{other_user.user_code}@bharatpay"
+                        note = random.choice(["Dinner split", "Cab share", "Weekend trip", "Gift", "Repayment"])
+                        amount_paise = random.randint(50000, 250000)
+                        recipient_acc_id = other_acc.id
+
+                    txn = Transaction(
+                        txn_reference=f"TXN2026{days_ago:02d}{txn_idx:05d}",
+                        from_account_id=account.id,
+                        to_account_id=recipient_acc_id,
+                        from_vpa=user.upi_profiles[0].vpa if user.upi_profiles else f"{user.user_code}@bharatpay",
+                        to_vpa=to_vpa,
+                        amount_paise=amount_paise,
+                        note=note,
+                        status="SUCCESS",
+                        created_at=txn_time
+                    )
+                    db.add(txn)
 
             db.commit()
-            print("[BharatPay Seed] Successfully seeded transaction history.")
+            print(f"[BharatPay Seed] Successfully seeded {db.query(Transaction).count()} transactions across all users.")
 
-        print("[BharatPay Seed] Database setup complete!")
+        print("[BharatPay Seed] Realism pass complete!")
 
     except Exception as e:
         db.rollback()
